@@ -1,74 +1,84 @@
+
+
 const table = document.querySelector('.artistTable');
-const url = 'https://raw.githubusercontent.com/speculative-salon/speculative-salon.github.io/main/data.jsonl';
-//const url = 'data.jsonl';
-window.addEventListener('DOMContentLoaded',()=>{
-   fetchData();
-})
-let images = new Set()
-
-const increment = 30
+const filePath = 'data.jsonl';
+let elementsWithDateRev = null;
+const increment = 5
 let numImages = increment;
-let lines = null;
-function fetchData(){
-    fetch(url)
-      .then(response => response.text())
-      .then(data => {
-        lines = data.split('\n').reverse();
-        
-        let top = new Array();
 
-        for (let line of lines ){
-            if (line.trim() !== '') {
-                if (top.length < numImages ) {
-                    top.push(line)
-                }
-            }
-        }
-        top.reverse().forEach(line => {
-        if (line.trim() !== '') {
-            const obj = JSON.parse(line);
-            // Do something with the object
-              if (!images.has(obj.img)){
-                    addToPage(obj, true)
-                  }
-          }
-        });
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
 
+// Function to load elements from a JSONL file using Fetch API
+async function loadElementsFromJsonlFile(filePath) {
+  const response = await fetch(filePath);
+  const jsonlData = await response.text();
+  const elements = [];
+
+  jsonlData.split('\n').forEach((line) => {
+    if (line.trim() !== '') {
+      const element = JSON.parse(line);
+      elements.push(element);
+    }
+  });
+
+  return elements;
 }
+
+// Function to assign "dateCreated" field with timestamps
+function assignDateCreated(elements) {
+  let filteredElements = new Array();
+  const startDate = new Date('May 30, 2023 18:00:00 GMT+0300'); // Start date and time
+  const minute = 60 * 1000* 10; // One minute in milliseconds
+  let now = Date.now(); // Current timestamp
+
+  for (let i = 0; i < elements.length; i++) {
+    let timestamp = startDate.getTime() + (i * minute);
+      if (timestamp <= now) {
+          console.log(now)
+      let el = elements[i]
+      el.time = new Date(timestamp).toUTCString().slice(0, -12);
+      filteredElements.push(el) 
+      }
+  }
+    return filteredElements;
+  }
+
+
+
+// Load elements from the JSONL file
+loadElementsFromJsonlFile(filePath)
+  .then((elements) => {
+    // Assign "dateCreated" field with timestamps
+    const elementsWithDate = assignDateCreated(elements);
+    elementsWithDateRev = elementsWithDate.reverse();
+       for  (let step = 0; step < increment; step++){
+            addToPage(elementsWithDateRev[step], false);
+    }
+  })
+  .catch((error) => {
+    console.error('Error loading elements:', error);
+  });
+
+
+
+window.addEventListener('DOMContentLoaded',()=>{
+   loadElementsFromJsonlFile() 
+})
+
 
 
 function loadMore(){
 
-    numImages += increment;
-    console.log(numImages)
-    let top = new Array();
 
-    for (let line of lines ){
-        if (line.trim() !== '') {
-            if (top.length < numImages ) {
-                top.push(line)
-            }
-        }
+    for (let i = numImages; i<= numImages+increment; i++){
+            addToPage(elementsWithDateRev[i], false); 
     }
-    top.forEach(line => {
-    if (line.trim() !== '') {
-        const obj = JSON.parse(line);
-        // Do something with the object
-        if (!images.has(obj.img)){
-                addToPage(obj, false)
-              }
-      }
-    });
-
+    numImages += increment;
 }
 
 function insertAfter(newNode, existingNode) {
     existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
 }
+
 
 
 
@@ -80,7 +90,6 @@ function addToPage(el, addTop){
    }else{
         table.append(frame)
    }
-   images.add(el.img)
    const tdImg = document.createElement('div');
    const img = document.createElement('img');
    img.src = el.img
@@ -117,8 +126,8 @@ function addToPage(el, addTop){
 }
 
 
-const refreshIntervalSeconds = 10; // Change this value to your desired interval
-setInterval(fetchData, refreshIntervalSeconds * 1000);
+//const refreshIntervalSeconds = 10; // Change this value to your desired interval
+//setInterval(fetchData, refreshIntervalSeconds * 1000);
 
 
 
