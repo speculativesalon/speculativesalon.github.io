@@ -1,7 +1,7 @@
 
 
 const table = document.querySelector('.artistTable');
-const filePath = 'data.jsonl';
+const filePath = 'https://raw.githubusercontent.com/speculativesalon/speculativesalon.github.io/main/data.jsonl';
 let elementsWithDateRev = null;
 const increment = 30;
 let numImages = increment;
