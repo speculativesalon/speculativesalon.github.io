@@ -3,7 +3,7 @@
 const table = document.querySelector('.artistTable');
 const filePath = 'data.jsonl';
 let elementsWithDateRev = null;
-const increment = 5
+const increment = 30;
 let numImages = increment;
 
 
